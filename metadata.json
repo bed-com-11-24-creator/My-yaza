@@ -1,0 +1,6 @@
+{
+  "name": "MyYaza",
+  "description": "A sleek mobile AI multi-provider dashboard with ChatGPT, DeepSeek, Gemini, and Math Solver support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

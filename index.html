@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>MyYaza - Multi-Provider AI Dashboard</title>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- PrismJS Tomorrow Dark Theme -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+  <!-- Modular Stylesheets -->
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/chat.css" />
+</head>
+<body>
+
+  <!-- Offline Connection Banner -->
+  <div id="offlineBanner" class="offline-banner">
+    ⚠️ Offline mode: Internet connection lost. Responses will resume once reconnected.
+  </div>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="brand-group" id="brandHomeBtn" title="Back to current conversation">
+        <div class="brand-logo" aria-label="MyYaza Logo">
+          <span>MY</span>
+        </div>
+        <div class="brand-info">
+          <h1>MyYaza <span class="brand-badge">AI Hub</span></h1>
+          <p><span id="headerSyncStatus">Local 💾</span> • Multi-Provider</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- New Chat Button -->
+        <button id="newChatBtn" class="icon-btn" title="New conversation" aria-label="New Chat">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+
+        <!-- Chat History Drawer Toggle Button -->
+        <button id="toggleHistoryBtn" class="icon-btn" title="Chat History" aria-label="History">
+          <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </button>
+
+        <!-- Quota / BYOK Pill -->
+        <div id="trialPill" class="trial-pill" title="Free questions quota / BYOK Status">
+          <span id="trialPillText">Trial: 0/5</span>
+        </div>
+
+        <!-- Toggle Settings Button -->
+        <button id="toggleSettingsBtn" class="icon-btn" title="API Key Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+
+        <!-- User Profile / Auth Button -->
+        <button id="userAuthBtn" class="user-avatar-btn guest" title="User Account & Cloud Sync" aria-label="User Account">
+          <span id="userAvatarText">👤</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Provider Selector Dropdown -->
+    <div id="providerBar" class="provider-bar">
+      <div class="select-wrapper">
+        <button id="providerSelectBtn" class="provider-select-btn" type="button" aria-haspopup="listbox">
+          <div class="provider-selected-info">
+            <span id="activeProviderDot" class="provider-indicator"></span>
+            <span id="activeProviderName" class="provider-name">ChatGPT</span>
+            <span id="activeProviderTag" class="provider-tag">(OpenRouter Free)</span>
+          </div>
+          <svg class="dropdown-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        <div id="providerDropdownMenu" class="provider-dropdown-menu" role="listbox">
+          <div class="provider-option selected" data-provider="chatgpt" role="option">
+            <div class="option-details">
+              <span class="option-title">
+                <span class="provider-indicator" style="background:#10a37f;"></span>
+                ChatGPT
+              </span>
+              <span class="option-desc">General reasoning & coding</span>
+            </div>
+            <span class="option-badge badge-openrouter">OpenRouter Free</span>
+          </div>
+
+          <div class="provider-option" data-provider="deepseek" role="option">
+            <div class="option-details">
+              <span class="option-title">
+                <span class="provider-indicator" style="background:#0066ff;"></span>
+                DeepSeek
+              </span>
+              <span class="option-desc">Fast reasoning via Groq</span>
+            </div>
+            <span class="option-badge badge-groq">Groq Free</span>
+          </div>
+
+          <div class="provider-option" data-provider="gemini" role="option">
+            <div class="option-details">
+              <span class="option-title">
+                <span class="provider-indicator" style="background:#4facfe;"></span>
+                Google Gemini
+              </span>
+              <span class="option-desc">Multimodal & high-speed</span>
+            </div>
+            <span class="option-badge badge-gemini">AI Studio Free</span>
+          </div>
+
+          <div class="provider-option" data-provider="math_gauth" role="option">
+            <div class="option-details">
+              <span class="option-title">
+                <span class="provider-indicator" style="background:#a855f7;"></span>
+                Math / Gauth Solver
+              </span>
+              <span class="option-desc">Step-by-step math explanations</span>
+            </div>
+            <span class="option-badge badge-math">OpenRouter Free</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Current Session Info Bar -->
+  <div class="session-indicator-bar">
+    <span id="sessionTitleDisplay" class="session-title-text">New Conversation</span>
+    <div class="session-actions">
+      <button id="exportSessionBtn" class="session-action-btn" title="Export this chat">
+        <span>Export</span>
+      </button>
+      <button id="deleteSessionBtn" class="session-action-btn" style="color:var(--text-muted);" title="Clear this chat">
+        <span>Clear</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- BYOK Settings Panel (Collapsible) -->
+  <section id="settingsPanel" class="settings-panel">
+    <div class="settings-content">
+      <div class="settings-header">
+        <div>
+          <h3>
+            <svg style="width:16px;height:16px;stroke:var(--accent-cyan);fill:none;" viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+            BYOK (Bring Your Own Keys)
+          </h3>
+          <p class="settings-subtitle">Save your free keys securely. Stored in localStorage & synced when authenticated.</p>
+        </div>
+      </div>
+
+      <!-- OpenRouter Key -->
+      <div class="setting-group">
+        <div class="setting-label-row">
+          <label class="setting-label" for="openrouterKey">
+            OpenRouter Free Key
+            <span id="badgeOpenrouter" class="key-status-indicator">Not set</span>
+          </label>
+          <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" class="setting-help-link">Get Free Key ↗</a>
+        </div>
+        <div class="input-mask-container">
+          <input type="password" id="openrouterKey" class="key-input" placeholder="sk-or-v1-..." autocomplete="off" />
+          <button type="button" class="toggle-visibility-btn" data-target="openrouterKey" aria-label="Toggle password view">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Groq Key -->
+      <div class="setting-group">
+        <div class="setting-label-row">
+          <label class="setting-label" for="groqKey">
+            Groq Free Key
+            <span id="badgeGroq" class="key-status-indicator">Not set</span>
+          </label>
+          <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="setting-help-link">Get Free Key ↗</a>
+        </div>
+        <div class="input-mask-container">
+          <input type="password" id="groqKey" class="key-input" placeholder="gsk_..." autocomplete="off" />
+          <button type="button" class="toggle-visibility-btn" data-target="groqKey" aria-label="Toggle password view">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Google AI Studio Key -->
+      <div class="setting-group">
+        <div class="setting-label-row">
+          <label class="setting-label" for="geminiKey">
+            Google AI Studio Key
+            <span id="badgeGemini" class="key-status-indicator">Not set</span>
+          </label>
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="setting-help-link">Get Free Key ↗</a>
+        </div>
+        <div class="input-mask-container">
+          <input type="password" id="geminiKey" class="key-input" placeholder="AIzaSy..." autocomplete="off" />
+          <button type="button" class="toggle-visibility-btn" data-target="geminiKey" aria-label="Toggle password view">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-btn-row">
+        <button id="saveKeysBtn" class="btn btn-primary" type="button">Save Keys</button>
+        <button id="clearKeysBtn" class="btn btn-secondary" type="button">Clear</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide-Over Chat History Drawer -->
+  <div id="drawerOverlay" class="drawer-overlay"></div>
+  <aside id="historyDrawer" class="drawer">
+    <div class="drawer-header">
+      <h3>
+        <svg style="width:16px;height:16px;stroke:var(--accent-cyan);fill:none;" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Chat History
+      </h3>
+      <button id="closeDrawerBtn" class="icon-btn" style="border:none;" aria-label="Close drawer">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <!-- Search in History -->
+    <div class="drawer-search-box">
+      <input type="text" id="historySearchInput" class="search-input" placeholder="Search conversations..." />
+    </div>
+
+    <!-- Conversations List -->
+    <div id="historyList" class="history-list">
+      <!-- Populated via JS -->
+    </div>
+
+    <div class="drawer-footer">
+      <button id="drawerNewChatBtn" class="btn btn-primary" type="button">
+        + Start New Chat
+      </button>
+      <button id="clearAllHistoryBtn" class="btn btn-danger" type="button">
+        Clear All History
+      </button>
+    </div>
+  </aside>
+
+  <!-- Chat Messages Container -->
+  <main id="chatContainer" class="chat-container">
+    <div id="emptyState" class="empty-state">
+      <div class="empty-logo">MY</div>
+      <h2>Welcome to MyYaza</h2>
+      <p>Select an AI engine above, speak or type your question, and get syntax-highlighted solutions.</p>
+
+      <!-- Optional Auth / Sync Teaser Banner for Guest -->
+      <div id="guestSyncTeaser" class="guest-sync-banner">
+        <h4>☁️ Optional Cloud Sync & Cross-Device History</h4>
+        <p>You are using MyYaza as Guest. Your chat history is stored locally on this device. Sign in anytime to sync your conversations across all devices!</p>
+        <button id="guestSignInPromptBtn" class="btn btn-primary" type="button">Sign In / Register</button>
+      </div>
+
+      <div class="quick-prompts">
+        <div class="prompt-chip" data-prompt="Solve this math equation step-by-step: 3x^2 - 12x + 9 = 0">
+          <span>📐</span>
+          <span>Solve 3x² - 12x + 9 = 0 with steps</span>
+        </div>
+        <div class="prompt-chip" data-prompt="Write a Python script to fetch the current weather using a free REST API.">
+          <span>💻</span>
+          <span>Write a Python weather fetcher script</span>
+        </div>
+        <div class="prompt-chip" data-prompt="Explain how neural networks learn in 3 concise bullet points.">
+          <span>⚡</span>
+          <span>How neural networks learn (3 points)</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Input Bar with Voice-to-Text Microphone -->
+  <footer class="input-bar-container">
+    <div id="inputWrapper" class="input-wrapper">
+      <textarea
+        id="userInput"
+        class="chat-textarea"
+        rows="1"
+        placeholder="Ask MyYaza anything... (Shift+Enter for line)"
+        aria-label="User query input"
+      ></textarea>
+
+      <!-- Microphone Voice-to-Text Button -->
+      <button id="micBtn" class="mic-btn" type="button" aria-label="Dictate with voice" title="Voice Input (Speech-to-Text)">
+        <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+
+      <!-- Send Button -->
+      <button id="sendBtn" class="send-btn" type="button" aria-label="Send query" disabled>
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </button>
+    </div>
+    <div class="input-footer-hint">
+      <span id="limitHintText">5 free questions globally before personal API key required.</span>
+      <span id="activeModelTag">Engine: ChatGPT</span>
+    </div>
+  </footer>
+
+  <!-- Modal: Free Limit Reached -->
+  <div id="limitModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="limitModalTitle">
+    <div class="modal-card">
+      <div class="modal-icon-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h2 id="limitModalTitle" class="modal-title">Limit Reached</h2>
+      <p class="modal-desc">
+        Free local limit reached! Please add your personal free API keys in the settings panel above to continue using MyYaza for free.
+      </p>
+      <div class="modal-actions">
+        <button id="modalOpenSettingsBtn" class="btn btn-primary" type="button">Open Settings Panel</button>
+        <button id="modalDismissBtn" class="btn btn-secondary" type="button">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: User Authentication (Login / Sign Up / Guest) -->
+  <div id="authModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <div class="modal-card">
+      <div class="modal-icon-badge" style="background:rgba(0,242,254,0.15);border-color:rgba(0,242,254,0.3);color:var(--accent-cyan);">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <h2 id="authModalTitle" class="modal-title">Account & Sync</h2>
+      
+      <!-- Profile View -->
+      <div id="authProfileView" style="display:none;width:100%;flex-direction:column;gap:12px;">
+        <div style="background:var(--bg-surface-elevated);padding:14px;border-radius:var(--radius-md);text-align:left;">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;">Signed in as</div>
+          <div id="profileEmailDisplay" style="font-size:14px;font-weight:700;color:#fff;margin-top:2px;">user@example.com</div>
+          <div id="profileNameDisplay" style="font-size:12px;color:var(--accent-cyan);margin-top:2px;">User</div>
+          <div style="margin-top:10px;font-size:11px;color:#34d399;display:flex;align-items:center;gap:4px;">
+            <span>☁️ Cross-Device Cloud Sync: Active</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="manualSyncBtn" class="btn btn-primary" type="button">Sync Now 🔄</button>
+          <button id="logoutBtn" class="btn btn-secondary" type="button">Log Out</button>
+          <button id="closeProfileBtn" class="btn btn-secondary" type="button">Close</button>
+        </div>
+      </div>
+
+      <!-- Auth Form View -->
+      <div id="authFormView" style="display:flex;width:100%;flex-direction:column;gap:12px;">
+        <div class="auth-tabs">
+          <button id="authTabLogin" class="auth-tab-btn active" type="button">Log In</button>
+          <button id="authTabSignup" class="auth-tab-btn" type="button">Create Account</button>
+        </div>
+
+        <p class="modal-desc" id="authModeDesc">
+          Sign in to automatically save and sync your conversations and BYOK settings across any device.
+        </p>
+
+        <form id="authForm" class="auth-form" onsubmit="return false;">
+          <div class="auth-input-group" id="nameInputGroup" style="display:none;">
+            <label for="authNameInput">Your Name</label>
+            <input type="text" id="authNameInput" class="auth-input" placeholder="e.g. Alex" />
+          </div>
+
+          <div class="auth-input-group">
+            <label for="authEmailInput">Email Address</label>
+            <input type="email" id="authEmailInput" class="auth-input" placeholder="you@domain.com" required />
+          </div>
+
+          <div class="auth-input-group">
+            <label for="authPasswordInput">Password</label>
+            <input type="password" id="authPasswordInput" class="auth-input" placeholder="••••••••" required />
+          </div>
+
+          <div id="authErrorMsg" class="auth-error-msg"></div>
+
+          <div class="modal-actions">
+            <button id="authSubmitBtn" class="btn btn-primary" type="submit">Log In</button>
+            <button id="continueAsGuestBtn" class="btn btn-secondary" type="button">Continue as Guest (Local Only)</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- PrismJS Core & AutoLoader for Syntax Highlighting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+  <!-- Modular JavaScript Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
